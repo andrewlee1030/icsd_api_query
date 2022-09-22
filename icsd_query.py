@@ -27,8 +27,7 @@ class icsd_swagger():
 			print('Authentication token manually specified...')
 			return None
 
-		try:
-			# read in old authentication key if it exists
+		try: # read in old authentication key if it exists
 			f = open('ICSD-AUTH-TOKEN','r')
 			text = f.readlines()[0][:-2] # removes \n from new line
 			self.auth_time = text.split(',')[1]
@@ -39,15 +38,16 @@ class icsd_swagger():
 			now = datetime.datetime.now()
 			delta = now - auth_time
 
-			if delta.seconds > 57*60: new_login = True
-			else: new_login = False
+			if delta.seconds > 57*60: new_login = True # authentication key exists but it's too old
+			else: new_login = False # authentication key exists and is valid
 
-
-		except:
+		except: # start a new login in the absence of an authentication key
 			new_login = True
 			pass
 
-		if new_login == False:
+
+
+		if new_login == False: # use old authentication token
 			self.auth_token = auth_token
 			print('Using old authentication token...')
 		else:
@@ -115,6 +115,7 @@ class icsd_swagger():
 		try:
 			assert(len(coll_codes) > 0)
 			self.id_nums = coll_codes
+			self.query = 'custom_coll_codes'
 			print('Set custom array of collection codes successfully.')
 		except:
 			raise ValueError('Custom collection codes are invalid, make sure you input an array of strings of integers!')
@@ -141,6 +142,12 @@ class icsd_swagger():
 
 		elif download_status_code == 401: 
 			raise ValueError("Not authorized! Authentication token expired or invalid.")
+		
+		elif download_status_code == 500:
+			raise ValueError("The server returned an error. Not exactly sure what happened...")
+		else:
+			raise ValueError(f'ERROR: download status code is {download_status_code}. Please google this up!')
+			
 
 	def download_cifs(self):
 		# you must perform one of the '*_search' functions first to get ids
@@ -157,13 +164,13 @@ class icsd_swagger():
 		total_download_counter = 0
 		session_download_counter = 0 # remember that a login session only allows for 1000 cif downloads
 		sublist_counter = 0
-
+		print(f'There are {len(id_sublists)} to download.')
 		for sublist in id_sublists:
 			n_sublist = len(sublist)
 			session_download_counter += n_sublist
 			total_download_counter += n_sublist
 
-			print(f'Downloading {total_download_counter}/{n_id_nums}.')
+			print(f'Downloading sublist {sublist_counter}.')
 
 			if session_download_counter > 1000:
 				session_download_counter = n_sublist
