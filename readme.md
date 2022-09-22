@@ -18,20 +18,20 @@ To filter out theoretical structures, you must first download them separately us
 
 2. Call the login function to log in with the specified credentials.
 
-3a. Call the simple_search or expert_search functions with inputs:
+3. Call the simple_search or expert_search functions with inputs:
     - query_text: string of query text as defined in the ICSD website
         - simple search query syntax can be found [here](https://icsd.fiz-karlsruhe.de/resources/content/help/ICSD_Help.pdf#page=9)
         - expert search query syntax can be found [here](https://icsd.fiz-karlsruhe.de/search/expertSearch.xhtml)
 
-3b. Or you can supply your own array of ICSD collection codes via the custom_coll_codes function with the input:
-    - coll_codes: array of collection codes (integers) to download
+4. Or you can supply your own array of ICSD collection codes via the custom_coll_codes function with the input:
+    - coll_codes: array of collection codes (integers) to download  
 
-4. Call the download_cifs function to download the relevant cifs that satisfy the query conditions
+5. Call the download_cifs function to download the relevant cifs that satisfy the query conditions
 
-5. (optional) Call the unzip_downloads function to unzip all downloaded cifs into a destination specified in the function input:
+6. (optional) Call the unzip_downloads function to unzip all downloaded cifs into a destination specified in the function input:
     - destination: string of folder you want to unzip all cifs into
         
-6. Call the logout function (**IMPORTANT!**)
+7. Call the logout function (**IMPORTANT!**)
 
 
 # Example
