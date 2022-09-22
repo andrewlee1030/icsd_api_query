@@ -117,7 +117,7 @@ class icsd_swagger():
 			self.id_nums = coll_codes
 			print('Set custom array of collection codes successfully.')
 		except:
-			raise ValueError('Custom collection codes are invalid, make sure you input an array of integers!')
+			raise ValueError('Custom collection codes are invalid, make sure you input an array of strings of integers!')
 
 	def download_batch_cifs(self,id_nums,cell_type='experimental',filename = 'CustomDownload',filetype='zip'):
 		'''
