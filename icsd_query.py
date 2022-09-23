@@ -14,6 +14,7 @@ class icsd_swagger():
 		self.url = 'https://icsd.fiz-karlsruhe.de/ws'
 		self.loginid = loginid
 		self.loginpass = password
+		self.error_log = 'Error id nums: \n'
 
 		if os.path.isdir('downloads') == False:
 			os.mkdir('downloads')
@@ -120,7 +121,7 @@ class icsd_swagger():
 		except:
 			raise ValueError('Custom collection codes are invalid, make sure you input an array of strings of integers!')
 
-	def download_batch_cifs(self,id_nums,cell_type='experimental',filename = 'CustomDownload',filetype='zip'):
+	def download_batch_cifs(self,id_nums,sublist_counter, cell_type='experimental',filename = 'CustomDownload',filetype='zip',error_handling='ignore',simple_filenames = True):
 		'''
 		DO NOT CALL THIS FUNCTION DIRECTLY! USE 'download_cifs' INSTEAD
 		This is just to help the 'download_cifs' function which should work for lists of id numbers of all sizes
@@ -131,25 +132,41 @@ class icsd_swagger():
 			filename: string ; custom filename for downloading cifs
 			filetype: string, can be 'cif' or 'zip' ; data can be writen to a single cif file or a compressed folder of individual cif files (not sure why you'd ever want the 'cif' option)
 		'''
-		download = requests.get(self.url + '/cif/multiple', params={'idnum':id_nums,'cell_type':cell_type,'filename':filename,'filetype':filetype}, headers={'ICSD-Auth-Token':self.auth_token},stream=True)
+		if simple_filenames == True: cif_filename = ''
+		else: cif_filename = filename
+		download = requests.get(self.url + '/cif/multiple', params={'idnum':id_nums,'cell_type':cell_type,'filename':cif_filename,'filetype':filetype}, headers={'ICSD-Auth-Token':self.auth_token},stream=True)
 		download_status_code = download.status_code
 		if download_status_code == 200:
-			with open(f'downloads/{filename}.zip','wb') as f:
+			with open(f'downloads/{sublist_counter}{filename}.zip','wb') as f:
 				for chunk in download.iter_content(chunk_size=1024):
 					f.write(chunk)
 			f.close()
 			print('Download successful.')
-
 		elif download_status_code == 401: 
-			raise ValueError("Not authorized! Authentication token expired or invalid.")
-		
+			raise ValueError("Error code 401 - Not authorized! Authentication token expired or invalid.")
 		elif download_status_code == 500:
-			raise ValueError("The server returned an error. Not exactly sure what happened...")
+			if error_handling != 'ignore': raise ValueError("Error code 500 - The server returned an error. Not exactly sure what happened...")
+			else:
+				print('Invalid id number(s) detected - attempting to continue, check error output for bad id numbers.')
+
+				# split id nums array in half 
+
+				if len(id_nums) > 1:
+					sub_sublists = np.array_split(id_nums,2)
+					for i in range(len(sub_sublists)):
+						sub_sublist = sub_sublists[i]
+						filename += f'_{i}'
+						self.download_batch_cifs(id_nums = sub_sublist,filename = filename, sublist_counter = sublist_counter)
+				else: # record to error log
+					self.error_log = self.error_log + id_nums[0] + '\n'
+
+		elif download_status_code == 403:
+			raise ValueError("Error code 403 - There is an issue with authentication. Please log out manually and retry.")
 		else:
 			raise ValueError(f'ERROR: download status code is {download_status_code}. Please google this up!')
 			
 
-	def download_cifs(self):
+	def download_cifs(self, simple_filenames=True):
 		# you must perform one of the '*_search' functions first to get ids
 		# ICSD can only download 500 cifs at a time, with a max of 1000 cifs per session
 		n_id_nums = len(self.id_nums)
@@ -164,7 +181,7 @@ class icsd_swagger():
 		total_download_counter = 0
 		session_download_counter = 0 # remember that a login session only allows for 1000 cif downloads
 		sublist_counter = 0
-		print(f'There are {len(id_sublists)} to download.')
+		print(f'There are {len(id_sublists)} sublists to download.')
 		for sublist in id_sublists:
 			n_sublist = len(sublist)
 			session_download_counter += n_sublist
@@ -177,8 +194,15 @@ class icsd_swagger():
 				self.logout()
 				self.login()
 
-			self.download_batch_cifs(id_nums = sublist,filename = f'{self.query}_{sublist_counter}')
+			if simple_filenames == False: filename = f'_{self.query}'
+			else: filename = ''
+			self.download_batch_cifs(id_nums = sublist,filename = filename,sublist_counter = sublist_counter)
 			sublist_counter += 1
+
+		# write the error log
+		error_log_file = open('error_log.txt','w+')
+		error_log_file.write(self.error_log)
+		error_log_file.close()
 
 	def unzip_downloads(self,destination=None):
 		zips = glob.glob('downloads/*')
