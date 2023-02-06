@@ -112,14 +112,16 @@ class icsd_swagger():
 				self.id_nums = result_string.split(' ')
 				print(f'{len(self.id_nums)} results found.')
 
-	def custom_coll_codes(self,coll_codes):
-		try:
-			assert(len(coll_codes) > 0)
-			self.id_nums = coll_codes
-			self.query = 'custom_coll_codes'
-			print('Set custom array of collection codes successfully.')
-		except:
-			raise ValueError('Custom collection codes are invalid, make sure you input an array of strings of integers!')
+
+#### Need to fix thise one day, the "id_nums" in ICSD are not equivalent to collection codes
+	# def custom_coll_codes(self,coll_codes):
+	# 	try:
+	# 		assert(len(coll_codes) > 0)
+	# 		self.id_nums = coll_codes
+	# 		self.query = 'custom_coll_codes'
+	# 		print('Set custom array of collection codes successfully.')
+	# 	except:
+	# 		raise ValueError('Custom collection codes are invalid, make sure you input an array of strings of integers!')
 
 	def download_batch_cifs(self,id_nums,sublist_counter, cell_type='experimental',filename = 'CustomDownload',filetype='zip',error_handling='ignore',simple_filenames = True):
 		'''
@@ -215,3 +217,6 @@ class icsd_swagger():
 					pass
 				zip_ref.extractall(destination)
 
+
+	def print_id_nums(self):
+		print(self.id_nums)
