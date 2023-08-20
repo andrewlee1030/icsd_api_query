@@ -24,7 +24,8 @@ To filter out theoretical structures, you must first download them separately us
         - expert search query syntax can be found [here](https://icsd.fiz-karlsruhe.de/search/expertSearch.xhtml)
 
 4. Or you can supply your own array of ICSD collection codes via the custom_coll_codes function with the input:
-    - coll_codes: array of collection codes (strings of ints) to download  
+    - coll_codes: array of collection codes (strings of ints) to download
+    - !!UPDATE!!: this code is NOT the same as the ICSD collection codes on the web interface. This code appears to be numbered separately for just the API system...
 
 5. Call the download_cifs function to download the relevant cifs that satisfy the query conditions
 
